@@ -39,7 +39,7 @@ baxter_simulator Repository Overview
      |   +-- launch/
      |   +-- models/
      |
-     +-- baxter_sim_hardware/     This emulates the hardware interfaces of Baxter 
+     +-- baxter_sim_hardware/     This emulates the hardware interfaces of Baxter
      |   +-- src/
      |   +-- include/
      |   +-- config/
@@ -50,7 +50,7 @@ baxter_simulator Repository Overview
      |   +-- include/
      |   +-- ui/
      |
-     +-- baxter_sim_kinematics/     Implementation of IK, FK and gravity compensation for baxter 
+     +-- baxter_sim_kinematics/     Implementation of IK, FK and gravity compensation for baxter
      |   +-- src/
      |   +-- include/
      |   +-- launch/
@@ -76,3 +76,12 @@ Latest Release Information
 --------------------------
 
 http://sdk.rethinkrobotics.com/wiki/Release-Changes
+
+## Run Docker
+
+Build container
+
+```
+cd THIS_REPO
+docker build -t vicariousinc/baxter_simulator:kinetic .
+```
