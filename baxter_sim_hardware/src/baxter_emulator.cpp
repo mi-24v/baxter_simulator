@@ -269,6 +269,7 @@ bool baxter_emulator::init()
  */
 void baxter_emulator::startPublishLoop(const std::string& img_path)
 {
+  std::cout << "publish --------------------------------------- " << std::endl;
   ros::Rate loop_rate(100);
 
   arm_kinematics::Kinematics kin;

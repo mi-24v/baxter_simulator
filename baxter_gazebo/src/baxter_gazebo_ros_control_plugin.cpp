@@ -35,7 +35,7 @@
 
 /* Author: Hariharasudan Malaichamee
  * Author: Dave Coleman
- Desc:   Customized the default gazebo_ros_control_plugin.cpp
+ * Desc:   Customized the default gazebo_ros_control_plugin.cpp
  */
 
 // Overload the default plugin
@@ -72,9 +72,10 @@ private:
   baxter_core_msgs::JointCommand right_command_mode_, left_command_mode_;
 
   boost::mutex mtx_;  // mutex for re-entrent calls to modeCommandCallback
-  bool enable_cmd, is_disabled, head_is_started, left_gripper_is_started,
-      right_gripper_is_started;  // enabled tracks the current status of the robot that is being published & is_disabled
-                                 // keeps track of the action taken
+  bool enable_cmd_;   // tracks the current status of the robot that is being published
+  bool is_disabled_;  // keep track of the action taken
+  bool head_is_started_;
+  bool left_gripper_is_started_, right_gripper_is_started_;
 
 public:
   void Load(gazebo::physics::ModelPtr parent, sdf::ElementPtr sdf)
@@ -103,23 +104,23 @@ public:
     robot_state_sub_ = model_nh_.subscribe<baxter_core_msgs::AssemblyState>(
         "/robot/state", 1, &BaxterGazeboRosControlPlugin::enableCommandCallback, this);
 
-    enable_cmd = false;
-    is_disabled = false;
+    enable_cmd_ = false;
+    is_disabled_ = false;
     right_command_mode_.mode = -1;
     left_command_mode_.mode = -1;
-    head_is_started = false;
-    left_gripper_is_started = false;
-    right_gripper_is_started = false;
+    head_is_started_ = false;
+    left_gripper_is_started_ = false;
+    right_gripper_is_started_ = false;
   }
 
   void enableCommandCallback(const baxter_core_msgs::AssemblyState msg)
   {
-    enable_cmd = msg.enabled;
+    enable_cmd_ = msg.enabled;
     std::vector<std::string> start_controllers;
     std::vector<std::string> stop_controllers;
 
     // Check if we got disable signal and if the controllers are not already disabled
-    if (!enable_cmd && !is_disabled)
+    if (!enable_cmd_ && !is_disabled_)
     {
       stop_controllers.push_back("left_joint_effort_controller");
       stop_controllers.push_back("left_joint_velocity_controller");
@@ -143,17 +144,29 @@ public:
         ROS_INFO_NAMED("ros_control_plugin", "Gravity compensation was turned off");
         right_command_mode_.mode = -1;
         left_command_mode_.mode = -1;
-        head_is_started = false;
-        left_gripper_is_started = false;
-        right_gripper_is_started = false;
-        is_disabled = true;
+        head_is_started_ = false;
+        left_gripper_is_started_ = false;
+        right_gripper_is_started_ = false;
+        is_disabled_ = true;
       }
+    }
+    else if (enable_cmd_ && is_disabled_)  // enable robot
+    {
+      ROS_INFO_STREAM_NAMED("ros_control_plugin", "Enabling robot");
+
+      // By default, switch to position mode
+      baxter_core_msgs::JointCommand *msg = new baxter_core_msgs::JointCommand();
+      msg->mode = baxter_core_msgs::JointCommand::POSITION_MODE;
+      baxter_core_msgs::JointCommandConstPtr msgConst(msg);
+
+      leftModeCommandCallback(msgConst);
+      rightModeCommandCallback(msgConst);
     }
   }
 
   void leftEndEffectorCommandCallback(const baxter_core_msgs::EndEffectorCommand msg)
   {
-    if (!left_gripper_is_started && enable_cmd)
+    if (!left_gripper_is_started_ && enable_cmd_)
     {
       std::vector<std::string> start_controllers;
       std::vector<std::string> stop_controllers;
@@ -168,17 +181,18 @@ public:
       {
         ROS_INFO_NAMED("ros_control_plugin", "Robot is enabled");
         ROS_INFO_NAMED("ros_control_plugin", "Left Grippercontroller was successfully started");
-        ROS_INFO_NAMED("ros_control_plugin", "Gravity compensation was turned on");
-        left_gripper_is_started = true;
-        is_disabled = false;
+        ROS_INFO_NAMED("ros_control_plugin", "Gravity compensation was turned on by left end effector");
+        left_gripper_is_started_ = true;
+        is_disabled_ = false;
       }
     }
     else
       return;
   }
+
   void rightEndEffectorCommandCallback(const baxter_core_msgs::EndEffectorCommand msg)
   {
-    if (!right_gripper_is_started && enable_cmd)
+    if (!right_gripper_is_started_ && enable_cmd_)
     {
       std::vector<std::string> start_controllers;
       std::vector<std::string> stop_controllers;
@@ -193,17 +207,18 @@ public:
       {
         ROS_INFO_NAMED("ros_control_plugin", "Robot is enabled");
         ROS_INFO_NAMED("ros_control_plugin", "Right Grippercontroller was successfully started");
-        ROS_INFO_NAMED("ros_control_plugin", "Gravity compensation was turned on");
-        right_gripper_is_started = true;
-        is_disabled = false;
+        ROS_INFO_NAMED("ros_control_plugin", "Gravity compensation was turned on by right end effector");
+        right_gripper_is_started_ = true;
+        is_disabled_ = false;
       }
     }
     else
       return;
   }
+
   void headCommandCallback(const baxter_core_msgs::HeadPanCommand msg)
   {
-    if (!head_is_started && enable_cmd)
+    if (!head_is_started_ && enable_cmd_)
     {
       std::vector<std::string> start_controllers;
       std::vector<std::string> stop_controllers;
@@ -218,9 +233,9 @@ public:
       {
         ROS_INFO_NAMED("ros_control_plugin", "Robot is enabled");
         ROS_INFO_NAMED("ros_control_plugin", "Head controller was successfully started");
-        ROS_INFO_NAMED("ros_control_plugin", "Gravity compensation was turned on");
-        head_is_started = true;
-        is_disabled = false;
+        ROS_INFO_NAMED("ros_control_plugin", "Gravity compensation was turned on by head command");
+        head_is_started_ = true;
+        is_disabled_ = false;
       }
     }
     else
@@ -228,12 +243,12 @@ public:
   }
   void leftModeCommandCallback(const baxter_core_msgs::JointCommandConstPtr& msg)
   {
-    // Check if we already received this command for this arm and bug out if so
+    // Check if we already received this command for this arm and ignore if so
     if (left_command_mode_.mode == msg->mode)
     {
       return;
     }
-    else if (enable_cmd)
+    else if (enable_cmd_)
     {
       left_command_mode_.mode = msg->mode;  // cache last mode
       modeCommandCallback(msg, "left");
@@ -247,12 +262,12 @@ public:
 
   void rightModeCommandCallback(const baxter_core_msgs::JointCommandConstPtr& msg)
   {
-    // Check if we already received this command for this arm and bug out if so
+    // Check if we already received this command for this arm and ignore if so
     if (right_command_mode_.mode == msg->mode)
     {
       return;
     }
-    else if (enable_cmd)
+    else if (enable_cmd_)
     {
       right_command_mode_.mode = msg->mode;  // cache last mode
       modeCommandCallback(msg, "right");
@@ -321,7 +336,7 @@ public:
     }
     else
     {
-      is_disabled = false;
+      is_disabled_ = false;
       ROS_INFO_NAMED("ros_control_plugin", "Robot is enabled");
       ROS_DEBUG_STREAM_NAMED("ros_control_plugin", "Controller " << start << " started and " << stop << " stopped.");
       ROS_INFO_NAMED("ros_control_plugin", "Gravity compensation was turned on by mode command callback");

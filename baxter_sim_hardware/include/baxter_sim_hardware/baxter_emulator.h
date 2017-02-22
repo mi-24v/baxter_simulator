@@ -33,8 +33,8 @@
  *		commands
  */
 
-#ifndef baxter_emulator_H_
-#define baxter_emulator_H_
+#ifndef BAXTER_EMULATOR_H_
+#define BAXTER_EMULATOR_H_
 
 #include "ros/ros.h"
 #include <std_msgs/Bool.h>
