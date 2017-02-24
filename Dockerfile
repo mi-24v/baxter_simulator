@@ -42,7 +42,7 @@ RUN mv /bin/sh /bin/sh-old && \
 # Build repo
 WORKDIR $CATKIN_WS
 ENV PYTHONIOENCODING UTF-8
-RUN catkin config --extend /opt/ros/$ROS_DISTRO --install --cmake-args -DCMAKE_BUILD_TYPE=Release && \
+RUN catkin config --extend /opt/ros/${ROS_DISTRO} --cmake-args -DCMAKE_BUILD_TYPE=Release && \
     # Status rate is limited so that just enough info is shown to keep Docker from timing out, but not too much
     # such that the Docker log gets too long (another form of timeout)
     catkin build --jobs 1 --limit-status-rate 0.001 --no-notify
