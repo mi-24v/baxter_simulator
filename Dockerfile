@@ -13,7 +13,7 @@ WORKDIR $CATKIN_WS/src
 
 # Download source code
 RUN wstool init . && \
-    wstool merge https://raw.githubusercontent.com/vicariousinc/baxter_simulator/{ROS_DISTRO}-gazebo7/baxter_simulator.rosinstall && \
+    wstool merge https://raw.githubusercontent.com/vicariousinc/baxter_simulator/${ROS_DISTRO}-gazebo7/baxter_simulator.rosinstall && \
     wstool update
 
 # Update apt-get because previous images clear this cache
