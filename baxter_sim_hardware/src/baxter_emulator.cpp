@@ -76,7 +76,7 @@ const std::string BAXTER_RIGHT_GRAVITY_TOPIC = "robot/limb/right/gravity_compens
 
 const std::string BAXTER_SIM_STARTED = "robot/sim/started";
 
-const int IMG_LOAD_ON_STARTUP_DELAY = 35;  // Timeout for publishing a single RSDK image on start up
+const int IMG_LOAD_ON_STARTUP_DELAY = 10;  // Timeout for publishing a single RSDK image on start up
 
 enum nav_light_enum
 {
@@ -550,11 +550,10 @@ bool baxter_emulator::waitForSubscriber(const image_transport::Publisher& pub, c
                                     << " of required " << num_req_sub);
 
 
-    if (wait_time < std::numeric_limits<double>::epsilon() && ros::Time::now() > max_time)  // Check if timed out
+    if (wait_time < std::numeric_limits<double>::epsilon() || ros::Time::now() > max_time)  // Check if timed out
     {
-      ROS_WARN_STREAM_NAMED("emulator", "Topic '" << pub.getTopic() << "' unable to connect to any subscribers within "
-                                                  << wait_time << " sec. It is possible initially published visual "
-                                                                  "messages will be lost.");
+      ROS_WARN_STREAM_NAMED("emulator", "Topic '" << pub.getTopic() << "' unable to connect to " << num_req_sub << " subscribers within "
+                            << wait_time << " sec. It is possible initially published visual messages will be lost.");
 
       return false;
     }
