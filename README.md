@@ -9,6 +9,8 @@ Gazebo simulation with emulated interfaces for the Baxter Research Robot
 
 ## Install
 
+### ROS
+
 First, install [ROS Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) using the following steps:
 
 ```
@@ -19,6 +21,19 @@ sudo apt-get install ros-kinetic-ros-base
 sudo rosdep init
 rosdep update
 ```
+
+### Gazebo
+
+Optional: install the latest version of Gazebo. By default the version of Gazebo in Ubuntu 14.04 is 7.0.0, which is never updated despite bug fixes being available. To get the latext 7.x version of Gazebo, it is recommended you add OSRF's PPA to get updates - this will remove various deprecation warnings with Baxter. From [gazebosim.org](http://gazebosim.org/tutorials?tut=install_ubuntu):
+
+```
+sudo sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'
+wget http://packages.osrfoundation.org/gazebo.key -O - | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install gazebo7 libgazebo7-dev
+```
+
+### Baxter
 
 Next install the Gazebo simulator with Baxter:
 
@@ -54,6 +69,10 @@ Alternatively, use Rethink's ``baxter.sh`` script provided in https://github.com
 roslaunch baxter_gazebo baxter_world.launch
 ```
 
+## Demos
+
+### Simple
+
 To run a simple demo:
 
 ```
@@ -65,6 +84,28 @@ To run a simple keyboard-based control demo:
 ```
 rosrun baxter_examples joint_position_keyboard.py
 ```
+
+### MoveIt! Integration
+
+To run MoveIt!, first start the trajectory server:
+
+```
+rosrun baxter_interface joint_trajectory_action_server.py
+```
+
+Enable the robot:
+
+```
+rosrun baxter_tools enable_robot.py -e
+```
+
+Then start the demo:
+
+```
+roslaunch baxter_moveit_config demo_baxter.launch load_robot_description:=true right_electric_gripper:=true left_electric_gripper:=true
+```
+
+Within Rviz, click on the *Planning* tab of the *Motion Planning* display and choose *Update* under *Select Goal State: <random valid>*. Now press *Plan and Execute* and you should see the robot follow a path in both Rviz and Gazebo.
 
 ## Docker Container
 
