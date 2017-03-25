@@ -87,7 +87,15 @@ rosrun baxter_examples joint_position_keyboard.py
 
 ### MoveIt! Integration
 
-To run MoveIt!, first start the trajectory server:
+First download the ``baxter_moveit_config`` package, download depenedencies, and build:
+
+```
+git clone https://github.com/ros-planning/moveit_robots.git
+rosdep install -y --from-paths . --ignore-src --rosdistro kinetic --as-root=apt:false
+catkin build
+```
+
+To run MoveIt!, start the trajectory server:
 
 ```
 rosrun baxter_interface joint_trajectory_action_server.py
