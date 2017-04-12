@@ -85,7 +85,6 @@ bool Kinematics::init_grav()
   gazebo_msgs::SetLinkProperties setlinkproperties;
   gazebo_msgs::GetLinkProperties getlinkproperties;
 
-  setlinkproperties.request.gravity_mode = 0;
   // Load the right chain and copy them to Right specific variables
   tip_name = grav_right_name;
   if (!loadModel(result))
